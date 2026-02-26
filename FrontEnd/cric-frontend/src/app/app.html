@@ -1,0 +1,49 @@
+<div style="font-family: 'Segoe UI', sans-serif; padding: 20px; background-color: #f4f7f6; min-height: 100vh;">
+  <h1 style="color: #028062; text-align: center;">Cricbuzz Clone 🏏</h1>
+
+  <div style="max-width: 800px; margin: auto;">
+    <h2 style="border-left: 5px solid red; padding-left: 10px;">Live Matches 🔴</h2>
+    <div *ngIf="liveMatches.length === 0" style="padding: 20px; color: #666;">Abhi koi match live nahi hai.</div>
+    
+    <div *ngFor="let match of liveMatches" style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0; color: #333;">{{ match.name }}</h3>
+      <p style="color: #d32f2f; font-weight: bold;">{{ match.status }}</p>
+      <div *ngFor="let s of match.score" style="font-size: 1.1em; margin-top: 5px;">
+        {{ s.inning }}: <strong>{{ s.r }}/{{ s.w }}</strong> ({{ s.o }} ov)
+      </div>
+    </div>
+
+    <hr style="margin: 40px 0; border: 0; border-top: 1px solid #ddd;">
+
+    <h2 style="border-left: 5px solid #028062; padding-left: 10px;">Match Results 📜</h2>
+    <div *ngFor="let match of historyMatches" style="background: #fff; border-radius: 8px; padding: 10px; margin-bottom: 10px; border-left: 4px solid #028062;">
+      <h4 style="margin: 0;">{{ match.name }}</h4>
+      <p style="margin: 5px 0 0; color: #555; font-size: 0.9em;">Result: {{ match.status }}</p>
+    </div>
+  </div>
+</div>
+
+
+
+<section style="margin-top: 30px;">
+  <h2 style="color: #333; border-left: 5px solid #028062; padding-left: 10px;">
+    Past 1 Week Results 📜
+  </h2>
+  
+  <div *ngIf="historyMatches.length === 0" style="padding: 20px; color: #777;">
+    No matches found in the last 7 days.
+  </div>
+
+  <div class="history-list">
+    <div *ngFor="let match of historyMatches" 
+         style="background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #ddd;">
+      <div style="display: flex; justify-content: space-between;">
+        <span style="font-weight: bold;">{{ match.name }}</span>
+        <span style="font-size: 0.8em; color: #888;">{{ match.date }}</span>
+      </div>
+      <p style="margin: 5px 0 0; color: #028062; font-weight: 500;">
+        Result: {{ match.status }}
+      </p>
+    </div>
+  </div>
+</section>

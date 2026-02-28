@@ -64,10 +64,13 @@ services:
       - kafka
       - postgres-db
     environment:
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+- SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/cricbuzz_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
+      # MAINE YE DO LINES UPDATE KI HAIN:
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+      # AGAR AAPKE CODE MEIN ALAG KEY HAI TOH YE BHI DAAL DO:
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     deploy:
       resources:
         limits:

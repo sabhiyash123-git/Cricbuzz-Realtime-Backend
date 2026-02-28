@@ -1,10 +1,10 @@
 version: '3.8'
 
 services:
-  # 1. Database: PostgreSQL
   postgres-db:
     image: postgres:15
     container_name: cric-postgres
+    restart: always
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
@@ -14,25 +14,25 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # 2. Cache: Redis
   redis-cache:
     image: redis:7-alpine
     container_name: cric-redis
+    restart: always
     ports:
       - "6379:6379"
 
-  # 3. Zookeeper
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: cric-zookeeper
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
-  # 4. Kafka
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: cric-kafka
+    restart: always
     depends_on:
       - zookeeper
     ports:
@@ -45,13 +45,15 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  # 5. Ingestion Service
   ingestion-service:
     build: ./ingestion-service
     container_name: cric-ingestion
+    restart: always
     depends_on:
       - kafka
       - redis-cache
+    ports:
+      - "8081:8081"
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_DATA_REDIS_HOST=redis-cache
@@ -59,31 +61,31 @@ services:
     deploy:
       resources:
         limits:
-          memory: 300M
+          memory: 250M
 
-  # 6. Processor Service
   processor-service:
     build: ./processor-service
     container_name: cric-processor
+    restart: always
     depends_on:
       - kafka
       - postgres-db
+    ports:
+      - "8082:8082"
     environment:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/cricbuzz_db
       - SPRING_DATASOURCE_USERNAME=user
       - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     deploy:
       resources:
         limits:
-          memory: 300M
+          memory: 250M
 
-  #FrontEnd 
-
-cric-frontend:
+  cric-frontend:
     build: ./cric-frontend-deploy
     container_name: cric-frontend
+    restart: always
     ports:
       - "80:80"
     depends_on:
@@ -93,5 +95,6 @@ cric-frontend:
       resources:
         limits:
           memory: 100M
+
 volumes:
   postgres_data:

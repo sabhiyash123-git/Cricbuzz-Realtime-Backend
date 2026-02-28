@@ -1,0 +1,18 @@
+# Step 1: Build the Angular app
+FROM node:18-alpine AS build
+WORKDIR /app
+
+# Dependency install karne ke liye files copy karo
+COPY package*.json ./
+RUN npm install
+
+# Poora code copy karke build karo
+COPY . .
+RUN npm run build --configuration=production
+
+# Step 2: Serve using Nginx
+FROM nginx:stable-alpine
+# Dhyan dena: 'dist/cric-frontend' folder ka naam check kar lena 'dist' ke andar kya banta hai
+COPY --from=build /app/dist/cric-frontend /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

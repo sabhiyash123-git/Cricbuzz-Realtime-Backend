@@ -8,7 +8,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 export class CricketService {
   // Aapka Spring Boot API endpoint
   // private apiUrl = 'http://localhost:8082/api/v1/score/all';
-  private apiUrl = 'http://54.79.75.116:8081/api/v1/score/all'
+  private apiUrl = 'http://54.79.75.116:8082/api/v1/score/all'
   
 
   constructor(private http: HttpClient) { }

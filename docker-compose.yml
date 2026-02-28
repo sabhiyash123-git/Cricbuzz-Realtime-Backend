@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # 1. Database: PostgreSQL
   postgres-db:
     image: postgres:15
     container_name: cric-postgres
@@ -14,14 +13,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # 2. Cache: Redis
   redis-cache:
     image: redis:7-alpine
     container_name: cric-redis
     ports:
       - "6379:6379"
 
-  # 3. Message Broker: Zookeeper (Kafka's Manager)
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: cric-zookeeper
@@ -29,7 +26,6 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
 
-# 4. Message Broker: Kafka (Stable Zookeeper Version)
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: cric-kafka
@@ -40,11 +36,42 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      # IMPORTANT: Changed to kafka:29092 for internal container talk
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
+  ingestion-service:
+    build: ./ingestion-service
+    container_name: cric-ingestion
+    depends_on:
+      - kafka
+      - redis-cache
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_DATA_REDIS_HOST=redis-cache
+      - SPRING_DATA_REDIS_PORT=6379
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+
+  processor-service:
+    build: ./processor-service # Matches your GitHub folder name
+    container_name: cric-processor
+    depends_on:
+      - kafka
+      - postgres-db
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/cricbuzz_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    deploy:
+      resources:
+        limits:
+          memory: 300M
 
 volumes:
   postgres_data:
